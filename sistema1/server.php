@@ -36,8 +36,8 @@ class NotificationsServer implements MessageComponentInterface {
         echo "YOU PARVA\n";
 
         if (isset($data['type']) && $data['type'] === 'new_comment') {
-            $statement = $this->pdo->prepare("INSERT INTO comments (comment_subject, comment_text, comment_status) VALUES (:comment_subject, :comment_text)");
-            $statement->execute(['comment_subject' => $data['subject'], 'comment_text' => $data['comment'], 'comment_status' => 0]);
+            $statement = $this->pdo->prepare("INSERT INTO comments (comment_subject, comment_text, comment_status) VALUES (:comment_subject, :comment_text, :comment_status)");
+            $statement->execute(['comment_subject' => $data['subject'], 'comment_text' => $data['comment'], 'comment_status' => $data['status']]);
             $this->broadcastNotifications();
             echo "OKI DOKI PARVA\n";
         } else {
