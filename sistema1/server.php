@@ -23,6 +23,7 @@ class NotificationsServer implements MessageComponentInterface {
     {
         $this->clients->attach($conn);
         echo "Nova conexão! - ({$conn->resourceId})\n";
+        $this->sendNotifications($conn);
     }
 
     public function onMessage(ConnectionInterface $from, $msg)
@@ -31,17 +32,10 @@ class NotificationsServer implements MessageComponentInterface {
 
         $data['status'] = 0;
 
-        var_dump($data);
-
-        echo "YOU PARVA\n";
-
         if (isset($data['type']) && $data['type'] === 'new_comment') {
             $statement = $this->pdo->prepare("INSERT INTO comments (comment_subject, comment_text, comment_status) VALUES (:comment_subject, :comment_text, :comment_status)");
             $statement->execute(['comment_subject' => $data['subject'], 'comment_text' => $data['comment'], 'comment_status' => $data['status']]);
             $this->broadcastNotifications();
-            echo "OKI DOKI PARVA\n";
-        } else {
-            echo "Sua parva\n";
         }
     }
 
@@ -59,8 +53,20 @@ class NotificationsServer implements MessageComponentInterface {
 
     private function broadcastNotifications() {
         foreach ($this->clients as $client) {
-            // Fazer a seguir
+            $this->sendNotifications($client);
         }
+    }
+
+    private function sendNotifications($conn) {
+        $statement = $this->pdo->query("SELECT * FROM comments ORDER BY comment_id DESC LIMIT 5;");
+        $notifications = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+        $response = [
+            'type' => 'notification',
+            'notifications' => $notifications,
+        ];
+
+        $conn->send(json_encode($response));
     }
 }
 
@@ -73,7 +79,7 @@ $server = IoServer::factory(
     8080
 );
 
-echo "O servirodr WebSocket foi iniciado na porta 8080";
+echo "O servidor WebSocket foi iniciado na porta 8080";
 $server->run();
 
 ?>

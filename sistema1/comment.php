@@ -39,7 +39,7 @@
 
                 window.document.getElementById('commentForm').reset()
 
-                /*window.alert('Comentário Adicionado!')*/
+                window.alert('Comentário Adicionado!')
             } else {
                 window.alert('Todos os campos são obrigatórios')
             }
