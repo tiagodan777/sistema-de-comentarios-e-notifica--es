@@ -37,6 +37,11 @@ class NotificationsServer implements MessageComponentInterface {
             $statement->execute(['comment_subject' => $data['subject'], 'comment_text' => $data['comment'], 'comment_status' => $data['status']]);
             $this->broadcastNotifications();
         }
+
+        if (isset($data['type']) && $data['type'] === 'mark_as_read') {
+            $this->markNofiticationAsRead($data['comment_id']);
+            $this->broadcastNotifications();
+        }
     }
 
     public function onClose(ConnectionInterface $conn)
@@ -57,13 +62,25 @@ class NotificationsServer implements MessageComponentInterface {
         }
     }
 
+    private function markNofiticationAsRead($commentId) {
+        $statement = $this->pdo->prepare("UPDATE comments SET comment_status = 1 WHERE comment_id = :comment_id");
+        $statement->execute(['comment_id' => $commentId]);
+    }
+
     private function sendNotifications($conn) {
         $statement = $this->pdo->query("SELECT * FROM comments ORDER BY comment_id DESC LIMIT 5;");
         $notifications = $statement->fetchAll(PDO::FETCH_ASSOC);
 
+        $statement = $this->pdo->query("SELECT COUNT(*) as unread_count FROM comments WHERE comment_status = 0");
+
+        $statement->execute();
+        $row = $statement->fetch(PDO::FETCH_ASSOC);
+        $unreadCount = $row['unread_count'];
+
         $response = [
             'type' => 'notification',
             'notifications' => $notifications,
+            'unread_count' => $unreadCount,
         ];
 
         $conn->send(json_encode($response));

@@ -12,10 +12,10 @@
         <div class="text-end">
             <div class="dropdown">
                 <button class="btn btn-primary dropdown-toggle" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    Notifications <span id="unreadCount" class="badge bg-danger">0</span>
+                    Notificações <span id="unreadCount" class="badge bg-danger">0</span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end" id="notificationList">
-                    <li><a href="" class="dropdown-item text-center">Não há novas notificações</a></li>
+                    <li><a class="dropdown-item text-center">Não há novas notificações</a></li>
                 </ul>
             </div>
         </div>
@@ -39,7 +39,7 @@
 
             notificationList.innerHTML = ''
 
-            if (notifications.lenght === 0) {
+            if (notifications.length === 0) {
                 notificationList.innerHTML = `<li><a class="dropdown-item text-center">Não há notificações novas</a></li>`
                 unreadBadge.style.display = 'none'
                 return
@@ -59,12 +59,23 @@
                     a.style.fontWeight = 'bold'
                     count++
                 }
+
+                a.onclick = function() {
+                    markAsRead(notification.comment_id)
+                }
+
+                li.appendChild(a)
+                notificationList.appendChild(li)
             })
 
             unreadBadge.textContent = count
             unreadBadge.style.display = count > 0 ? "Inline" : "none"
         }
+
+        function markAsRead(commentId) {
+            conn.send(JSON.stringify({ type : "mark_as_read", comment_id : commentId}))
+        }
     </script>
 </body>
 </html>
-<script src="https://cdn.jsdelivr.net/npm/bootscrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
